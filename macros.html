@@ -112,13 +112,16 @@
                         Hold
                     </label>
                     <br />
+                    
+                    <!--- 
                     <b>Bazecor:</b>
                     <span>Preview character on layer (experimental) </span>
                     <label>
                         <input type="checkbox" id="show-char" name="show-char" role="switch" checked
                             onchange="hide_download()">
                         Show
-                    </label>
+                    </label>-->
+
                     <br />
                     <b>Builder:</b>
                     <span>Update Existing</span>
@@ -341,7 +344,7 @@
                 "ibus_hold": !!document.getElementById("ibus-hold").value,
                 "ibus_end": ["enter"], // enter or space
                 "win_prefer_alt0": true,
-                "show_char_on_key": !!document.getElementById("show-char").value,
+                "show_char_on_key": false, //!!document.getElementById("show-char").value,
                 "update_existing": !!document.getElementById("update-existing").value,
             }
         }
