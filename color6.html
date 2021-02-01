@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html data-theme="dark">
+
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+    <script src="https://gitcdn.link/repo/vinaypillai/ac-colors/master/dist/ac-colors.js"></script>
+    <title>Color Selector</title>
+</head>
+
+<body style="background-color:#000000;min-height: 100vh;position: absolute;">
+
+
+    <div style="display:block;">
+        <label style="display: inline-block;margin:30px;">
+            <b>Base Hue:</b>
+            <!--Some value I like: 190, 206, 240-->
+            <input type="text" id="base-hue" value="190" onchange="main()" style="width:100px;display: inline-block;" />
+        </label>
+
+        <label style="display: inline-block;margin:30px;">
+            <b title="What color do you need to input in order to output white ?">White Point (for balance):</b>
+            <input type="text" id="wb-r" value="220" onchange="main()" style="width:100px;display: inline-block;" />
+            <input type="text" id="wb-g" value="255" onchange="main()" style="width:100px;display: inline-block;" />
+            <input type="text" id="wb-b" value="220" onchange="main()" style="width:100px;display: inline-block;" />
+        </label>
+
+        <span>
+            Variants:
+            <a href="./color6.html">6</a>-
+            <a href="./color8.html">8</a>-
+            <a href="./color12.html">12</a>
+            Colors
+        </span>
+
+
+    </div>
+
+    <div id="grid"
+        title="First column is your palette, others are there to help you choose base hue. 3 digit number at the end is hue"
+        style="display: flex;justify-content:space-around;overflow-x:auto"></div>
+
+
+    <br><br><br>
+
+    <h4>Color Palette</h4>
+    <textarea id="palette"></textarea>
+
+    <h4>White Balance Adjusted Palette</h4>
+    <textarea id="palette-wb"></textarea>
+
+
+    <script>
+
+
+        function main() {
+
+            var c = new Color();
+            var c_dim = new Color();
+
+            // You can sort of change those freely
+            // But Bazecor don't like palette that are not exactly 16 elements.
+
+            var split_inner = 3;
+            var split_outer = 2;
+            var split_outer2 = 7;
+
+            var inner = 360 / split_inner;
+            var outer = inner / split_outer;
+            var outer2 = outer / split_outer2;
+
+
+            var palette = [];
+            var palette_wb = [];
+
+            var base_hue = parseInt(document.getElementById("base-hue").value);
+
+            var wb = [
+                parseInt(document.getElementById("wb-r").value),
+                parseInt(document.getElementById("wb-g").value),
+                parseInt(document.getElementById("wb-b").value)
+            ];
+
+            var grid = document.getElementById("grid")
+            grid.innerHTML = "";
+
+            for (k = 0; k < split_outer2; k++) {
+
+                var column = document.createElement("div");
+                column.style.margin = "10px";
+                column.style.padding = "10px";
+
+
+                if (k == 0) {
+                    column.style.border = "1px solid white";
+                    column.title = "This is your pallette";
+                }
+
+                var column_dim = document.createElement("div");
+                column_dim.style.marginTop = "10px";
+
+                var i, j, k, rgb;
+
+                for (i = 0; i < split_outer; i++) {
+
+                    for (j = 0; j < split_inner; j++) {
+
+                        // We choose the Luminosity so we are at the limit where
+                        // no color clip or single color clip.
+                        //
+                        // Alternative:
+                        // Accept that some clip but with error less than 5/255?
+
+                        var hue = (Math.round(base_hue + k * outer2 + i * outer + j * inner) % 360)
+                        c.lchab = [75, 39, hue];
+
+                        //clip
+                        rgb = c.rgb;
+                        c.rgb = [ff(rgb[0]), ff(rgb[1]), ff(rgb[2])]
+
+                        //show clip in console
+                        if (k == 0) {
+                            if (c.rgb[0] != rgb[0] || c.rgb[1] != rgb[1] || c.rgb[2] != rgb[2]) {
+                                console.log("clipped", rgb)
+                            }
+                        }
+
+
+                        display_color(c, column)
+
+                        c_dim.lchab = [57, 26, hue];
+                        display_color(c_dim, column_dim)
+
+                        if (k == 0) {
+
+                            palette.push(rgb_obj(c.rgb))
+                            palette_wb.push(rgb_obj_wb(c.rgb, wb))
+
+                            palette.push(rgb_obj(c_dim.rgb))
+                            palette_wb.push(rgb_obj_wb(c_dim.rgb, wb))
+
+                        }
+
+                    }
+
+                    column.appendChild(column_dim)
+                    grid.appendChild(column);
+
+                }
+
+            }
+
+            // Add palette 12-16
+
+            palette.push(rgb_obj([128, 128, 128]))
+            palette.push(rgb_obj([64, 64, 64]))
+            palette.push(rgb_obj([254, 254, 254]))
+            palette.push(rgb_obj([0, 0, 0]))
+
+            palette_wb.push(rgb_obj_wb([128, 128, 128], wb))
+            palette_wb.push(rgb_obj_wb([64, 64, 64], wb))
+            palette_wb.push(rgb_obj_wb([254, 254, 254], wb))
+            palette_wb.push(rgb_obj_wb([0, 0, 0], wb))
+
+
+            console.log(palette)
+            console.log(palette_wb)
+            document.getElementById("palette").value = '"palette":' + JSON.stringify(palette, null, 2);
+            document.getElementById("palette-wb").value = '"palette":' + JSON.stringify(palette_wb, null, 2);
+
+            return true;
+
+        }
+
+        function display_color(color, parent) {
+            var node = document.createElement("div");  // Create a <li> node
+            node.style.width = "100%"
+            node.style.color = color.rgbString;
+            node.style.background = "#000";
+            node.style.whiteSpace = "nowrap";
+
+            var hue = color.lchab[2]
+
+            var text_node = document.createTextNode("■" + color.hexString + " " + hue.toFixed(0).toString().padStart(3, '0') + "■");
+            node.appendChild(text_node);
+            parent.appendChild(node);
+        }
+
+        function apply_wb(rgb, wb) {
+
+            var denum = 1.0 / 255.0;
+
+            var r2 = wb[0] * denum * rgb[0];
+            var g2 = wb[1] * denum * rgb[1];
+            var b2 = wb[2] * denum * rgb[2];
+
+            var l1 = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]);
+            var l2 = (0.299 * r2 + 0.587 * g2 + 0.114 * b2);
+            var adjust = l2 < 1e-6 ? 1.0 : l1 / l2;
+
+            return [ff(adjust * r2), ff(adjust * g2), ff(adjust * b2)];
+
+            return [r, g, b];
+
+        }
+
+        function ff(x) {
+            return clip(Math.round(x), 0, 255);
+        }
+
+        function clip(x, min, max) {
+            return Math.min(Math.max(x, min), max);
+        }
+
+
+        function rgb_obj_wb(rgb, wb) {
+            return rgb_obj(apply_wb(rgb, wb));
+        }
+
+
+        function rgb_obj(rgb) {
+            return {
+                "r": rgb[0],
+                "g": rgb[1],
+                "b": rgb[2],
+                "rgb": "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")",
+            }
+        }
+
+        main();
+
+    </script>
+
+
+</body>
+
+</html>

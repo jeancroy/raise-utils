@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+    <title>Character Input Macro Builder for Dygma Raise</title>
+</head>
+
+<body>
+
+    <form>
+
+        <div class="grid" style="max-width:1080px">
+
+            <div style="margin:30px">
+                <b>Assign special character to keys</b>
+                <p>"key":"single character",</p>
+
+                <!--{"18":"ê","19":"é","20":"è","25":"ù","26":"ï","27":"ô","33":"à","52":"ç"}-->
+                <textarea id="remap" style="margin: 0px; height: 450px;">
+                    {
+                        "19": "é",
+                        "25": "ü",
+                        "33": "à",
+                        "58": "ñ",
+                        "35": "δ",
+                        "44": "λ",
+                        "4": "€",
+                        "42": "ズ",
+                        "52": "⾙",
+                        "62": "😹",
+                        "59": "🧐"  
+                    }
+                 </textarea>
+
+                <br />
+                <button type="button" onclick="javacript:main()"> Compute Macros </button>
+
+            </div>
+
+
+            <div style="margin:30px">
+
+                <b>Character Input method</b>
+
+                <label>
+                    <input type="radio" name="method" value="win" checked onchange="hide_download()">
+                    <span>Windows: Alt Code</span>
+                </label>
+
+                <label>
+                    <input type="radio" name="method" value="wincompose" onchange="hide_download()">
+                    <span></span>Compose Key / WinCompose</span>
+                </label>
+
+                <label>
+                    <input type="radio" name="method" value="ibus" onchange="hide_download()">
+                    <span>Linux: Ibus</span>
+                </label>
+
+                <label>
+                    <input type="radio" name="method" value="macos" onchange="hide_download()">
+                    <span>MacOs: Unicode Hex Input</span>
+                </label>
+
+
+                <label>
+                    <span>UpperCase Layer # (0-9)</span>
+                    <input type="text" value="7" id="layer-uppercase-id" title="We recommend layer 6&7 or 8&9"
+                        onchange="hide_download()" />
+                </label>
+
+                <details>
+                    <summary>
+                        Extra Options
+                    </summary>
+
+                    <label>
+                        <b>Color Palette:</b>
+                        <span>Macro Key (0-15)</span>
+                        <input type="text" value="6" id="macro-color" title="Color # on the layer palette"
+                            onchange="hide_download()" />
+                    </label>
+
+                    <label>
+                        <b>Color Palette:</b>
+                        <span>Shift Key (0-15)</span>
+                        <input type="text" value="4" id="shift-color" title="Color # on the layer palette"
+                            onchange="hide_download()" />
+                    </label>
+
+
+                    <label>
+                        <b>Compose Key:</b>
+
+                        <select value="ralt" id="compose-key" title="For the wincompose method"
+                            onchange="hide_download()">
+                            <option value="ralt">Right Alt</option>
+                            <option value="rgui">Right Win</option>
+                            <option value="f20">F20</option>
+                            <option value="f21">F21</option>
+                            <option value="f22">F22</option>
+                            <option value="f23">F23</option>
+                            <option value="f23">F24</option>
+                        </select>
+                    </label>
+                    <br />
+                    <b>Linux:</b>
+                    <span>Hold Vs Enter</span>
+                    <label>
+                        <input type="checkbox" id="ibus-hold" name="ibus-hold" role="switch" onchange="hide_download()">
+                        Hold
+                    </label>
+                    <br />
+                    <b>Bazecor:</b>
+                    <span>Preview character on layer (experimental) </span>
+                    <label>
+                        <input type="checkbox" id="show-char" name="show-char" role="switch" checked
+                            onchange="hide_download()">
+                        Show
+                    </label>
+                    <br />
+                    <b>Builder:</b>
+                    <span>Update Existing</span>
+
+                    <label>
+                        <input type="checkbox" id="update-existing" name="update-existing" role="switch" checked
+                            onchange="hide_download()" title="If you turn off it'll only add macro instead of merge">
+                        Update
+                    </label>
+
+                </details>
+
+
+
+                <b>Keys number are assigned like so:</b><br />
+                <img src="https://gitcdn.link/repo/Dygmalab/Raise-Firmware/master/RaiseANSIKeyMap.png" width="300px"
+                    title="Ansi layout, For iso, 47 is next to 46 and 49 between 48 and 50" />
+            </div>
+
+
+        </div>
+
+        <article style="clear:both;display:none;margin-left:30px" id="download">
+            <h2>Download</h2>
+
+            <mark id="max-macro-warn" style="display: none;">
+                You've reached the maximum number of macros(32), some macros have been ignored.
+            </mark>
+
+            <p> Files to import into Bazecor:
+            <ul>
+                <li><a id="link-macro" download="allMacros.json">allMacros.json</a>("Edit Macros"&gt;"Macro
+                    Editor"&gt;"Restore")</li>
+                <li><a id="link-lower" download="layerLowerCase.json">layerLowerCase.json</a>
+                    (&#11123; "Import current layer")</li>
+                <li><a id="link-upper" download="layerUpperCase.json">layerUpperCase.json</a>
+                    (&#11123; "Import current layer")</li>
+            </ul>
+            <p>
+
+            <p>You can also save your mapping to rebuild those macros later.
+            <ul>
+                <li><a id="link-keymap" download="keymap.json">keymap.json</a></li>
+            </ul>
+            </p>
+
+            <br />
+        </article>
+        <div style="margin:30px;max-width:1080px">
+            <h3>Import</h3>
+            <p>
+                Everything come ready to use, but if you want to modify an existing layer or preserve your current
+                macros use this.After exporting a json file from Bazecor, you can copy the content in one of those
+                fields.
+            </p>
+
+            <div class="grid">
+
+                <div>
+
+                    <b>Base layer to modify</b>
+                    <p>You can use "Export the current layer" to create this. </p>
+                    <textarea id="base-layer" style="margin: 0px; width: 400px; height: 120px;"
+                        onchange="hide_download()">
+                { "keymap": [{ "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }, { "keyCode": 65535, "label": "", "extraLabel": "TRANS", "verbose": "Transparent" }], "colormap": [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], "palette": [{ "r": 255, "g": 196, "b": 0, "rgb": "rgb(255, 196, 0)" }, { "r": 0, "g": 254, "b": 24, "rgb": "rgb(0, 254, 24)" }, { "r": 255, "g": 255, "b": 255, "rgb": "rgb(255, 255, 255)" }, { "r": 231, "g": 255, "b": 0, "rgb": "rgb(231, 255, 0)" }, { "r": 0, "g": 255, "b": 234, "rgb": "rgb(0, 255, 234)" }, { "r": 0, "g": 52, "b": 255, "rgb": "rgb(0, 52, 255)" }, { "r": 255, "g": 0, "b": 232, "rgb": "rgb(255, 0, 232)" }, { "r": 87, "g": 164, "b": 255, "rgb": "rgb(87, 164, 255)" }, { "r": 144, "g": 19, "b": 254, "rgb": "rgb(144, 19, 254)" }, { "r": 239, "g": 219, "b": 255, "rgb": "rgb(239, 219, 255)" }, { "r": 214, "g": 129, "b": 255, "rgb": "rgb(214, 129, 255)" }, { "r": 255, "g": 9, "b": 0, "rgb": "rgb(255, 9, 0)" }, { "r": 0, "g": 0, "b": 0, "rgb": "rgb(0, 0, 0)" }, { "r": 0, "g": 0, "b": 0, "rgb": "rgb(0, 0, 0)" }, { "r": 0, "g": 0, "b": 0, "rgb": "rgb(0, 0, 0)" }, { "r": 0, "g": 0, "b": 0, "rgb": "rgb(0, 0, 0)" }] }
+                </textarea>
+
+                </div>
+
+                <div>
+                    <b>Merge with previous macros</b>
+                    <p>You can use "Macro Editor"&gt;"Backup" to create this</p>
+                    <textarea id="base-macro" style="margin: 0px; width: 400px; height: 120px;"
+                        onchange="hide_download()">[]</textarea>
+                </div>
+            </div>
+        </div>
+
+
+    </form>
+
+    <br />
+    <br />
+    <br />
+    <div style="margin:30px;max-width:1080px">
+
+        <h3>What is this</h3>
+
+        <p>
+            This tool builds character-input macros and assign them to designated keys on a layer you provide.
+            It also produces a virtual "shift key" version of the layer with a matching uppercase macro.
+            It produces json files that can be used with Bazecor "import current layer" and "restore all macros"
+            functionality.
+        </p>
+        <p>
+            For example, on windows é is alt-0233, É is alt-0201.
+            On Linux the code would be é: ctrl-shift ue9 and É: ctrl-shift uc9
+        </p>
+        <p>
+            This tool automates
+        <ul>
+            <li>Finding Unicode for your character in both cases</li>
+            <li>Converting Unicode to OS specific character input sequence</li>
+            <li>Assign macro to a key and uppercase macro to the same key in a second layer</li>
+            <li>Assign led color to remind you of available macros</li>
+            <li>Convert existing shift to layer-shift and apply shift modifier to existing keys</li> 
+                <p>
+                <p>
+                    To enter Unicode character not on that list you need to set up "EnableHexNumpad" in the registry.
+                    Even then, support is inconsistent per app. Some app will confuse this with alt-_ menu navigation.
+                <p>
+
+            </li>
+
+
+            <li>
+                <span>Compose Key</span>
+
+                <p>
+                    Compose key is a method to enter special character using a series of basic characters.
+                    Usually, use visually similar combination like <kbd>compose</kbd><kbd>'</kbd><kbd>e</kbd> 
+                    <kbd>é</kbd>.
+                    It also allow to enter arbitrary unicode character using compose u + hexadecimal unicode number
+                </p>
+
+                <p>
+                    It's available natively on many Linux distribution, and also available with extra software on windows.
+                    <a href="http://wincompose.info/">Wincompose</a> is such a software for Windows.
+                </p>
+
+                <p>
+                    If you are OK with installing extra software this is the closest to a portable solution.
+                </p>
+
+            </li>
+
+
+            <li>
+                <span>Linux</span>
+                <p>On Linux, IBUS allow arbitrary unicode input using ctrl-shit-u, may need to be installed and enabled</p>
+                <p>Both IBUS and compose key can be used, choice is probably wether you use other compose shortcut.</p>
+            </li>
+
+
+            <li>
+                <span>Mac "Unicode Hex Input" Method</span>
+                <p>Need to setup "Unicode Hex Input" as an input method</p>
+                <p>On Mac OS X: open International in System Preferences, and in Input Menu select "Unicode Hex Input"
+                    to add this option to the input menu. Should be between Ukrainian and Vietnamese. When selected,
+                    hold down Option and type the 4 digit hex
+                    code.
+                </p>
+
+            </li>
+
+
+        </ul>
+
+
+    </div>
+
+
+    <script>
+
+        max_macros = 32;
+        max_macros_warning = false;
+
+        function main() {
+
+            var layers_options = setup_layers_options();
+            var macro_options = setup_macro_options();
+
+            var layers = init_layers(read_json_input("base-layer"), layers_options);
+            var macro_state = init_macro_state(read_json_input("base-macro"), macro_options);
+            var keymap = read_json_input("remap");
+
+            loop_remap(keymap, macro_state, layers);
+
+            set_link_data("link-macro", macro_state.list);
+            set_link_data("link-lower", layers.lowercase);
+            set_link_data("link-upper", layers.uppercase);
+            set_link_data("link-keymap", keymap);
+
+            show_download();
+
+            return false;
+
+        }
+
+        function read_json_input(id) {
+            return JSON.parse(document.getElementById(id).value);
+        }
+
+        function set_link_data(id, data) {
+            document.getElementById(id).setAttribute("href", "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data)));
+        }
+
+        function show_download() {
+            var warn = document.getElementById("max-macro-warn");
+            warn.style.display = max_macros_warning ? "block" : "none";
+
+            var down = document.getElementById("download");
+            down.style.display = "block";
+
+            try { down.scrollIntoView(); }
+            catch { }
+
+        }
+
+        function hide_download() {
+            document.getElementById("download").style.display = "none";
+        }
+
+        function setup_macro_options() {
+            var sel_ck = document.getElementById("compose-key")
+            return {
+                "method": document.forms[0].elements['method'].value,
+                "compose_key": [sel_ck.options[sel_ck.selectedIndex].value],
+                "compose_mod": [],
+                "ibus_hold": !!document.getElementById("ibus-hold").value,
+                "ibus_end": ["enter"], // enter or space
+                "win_prefer_alt0": true,
+                "show_char_on_key": !!document.getElementById("show-char").value,
+                "update_existing": !!document.getElementById("update-existing").value,
+            }
+        }
+
+
+        function init_macro_state(base_macro, options) {
+
+            var cache = {};
+
+            if (base_macro == null) {
+                base_macro = [];
+            }
+
+            else {
+                for (i = 0; i < base_macro.length; i++) {
+                    var bmi = base_macro[i];
+                    if (bmi != null && bmi.name != null && bmi.id != null) {
+                        cache[bmi.name] = bmi;
+                    }
+                }
+            }
+
+            return {
+                list: base_macro,
+                cache: cache,
+                options: options,
+            }
+
+        }
+
+        function setup_layers_options() {
+            return {
+                "uppercase_layer_id": parseInt(document.getElementById("layer-uppercase-id").value),
+                "macro_key_color": parseInt(document.getElementById("macro-color").value),
+                "shift_key_color": parseInt(document.getElementById("shift-color").value),
+            }
+        }
+
+        function init_layers(base_layer, options) {
+
+            //deep copy
+            layers = {
+                lowercase: JSON.parse(JSON.stringify(base_layer)),
+                uppercase: JSON.parse(JSON.stringify(base_layer)),
+                options: options
+            }
+
+
+            // replace normal shift keys with shift-to-layer keys    
+            var shift_positions = find_shifts(layers.lowercase.keymap)
+            for (var i = 0; i < shift_positions.length; i++) {
+
+                layers.lowercase.keymap[shift_positions[i]] =
+                {
+                    "keyCode": 17450 + options.uppercase_layer_id,
+                    "label": options.uppercase_layer_id.toString(),
+                    "extraLabel": "SHIFTTO"
+                };
+
+                pos_led = remap_led(shift_positions[i]);
+                layers.lowercase.colormap[pos_led] = options.shift_key_color;
+                layers.uppercase.colormap[pos_led] = options.shift_key_color;
+
+            }
+
+            // replace basic keys with a shift modified version of them.
+            for (var j = 0; j < layers.uppercase.keymap.length; j++) {
+                layers.uppercase.keymap[j] = add_modifier(layers.uppercase.keymap[j], { shift: true })
+            }
+
+            return layers;
+
+        }
+
+
+        function loop_remap(remap, macro_state, layers) {
+            for (key in remap) {
+                if (!remap.hasOwnProperty(key)) continue;
+                map_key(key, remap[key], macro_state, layers)
+            }
+        }
+
+        function map_key(key, char, macro_state, layers) {
+
+
+            if (char.toUpperCase() != char) {
+
+                layers.lowercase.keymap[key] = make_macro_key(add_macro(char, macro_state), char, macro_state)
+                layers.uppercase.keymap[key] = make_macro_key(add_macro(char.toUpperCase(), macro_state), char, macro_state)
+
+                var pos_led = remap_led(key);
+                layers.lowercase.colormap[pos_led] = layers.options.macro_key_color;
+                layers.uppercase.colormap[pos_led] = layers.options.macro_key_color;
+
+            }
+            else {
+                layers.lowercase.keymap[key] = make_macro_key(add_macro(char, macro_state), char, macro_state)
+                layers.lowercase.colormap[remap_led(key)] = layers.options.macro_key_color;
+            }
+
+        }
+
+        function make_macro_key(id, char, macro_state) {
+
+            var extraLabel = (macro_state.options.show_char_on_key)
+                ? "MACR\xa0" + char
+                : "MACRO";
+
+            if (id >= 0 && id < max_macros) {
+                return {
+                    "keyCode": (24576 + id),
+                    "label": id.toString(),
+                    "extraLabel": extraLabel
+                }
+            }
+
+            // reached max macro
+            max_macros_warning = true;
+
+            return {
+                "keyCode": 65535,
+                "label": "",
+                "extraLabel": "TRANS",
+                "verbose": "Transparent"
+            };
+
+        }
+
+
+        function add_macro(char, macro_state) {
+
+            var cache = macro_state.cache[char]
+            if (cache != null) {
+
+                if (macro_state.options.update_existing) {
+                    var macro = to_macro(cache.id, char, macro_state.options);
+                    cache.actions = macro.actions;
+                }
+
+                return cache.id;
+
+            }
+
+            var id = find_free_id(macro_state);
+            if (id == -1) return id;
+
+            var macro = to_macro(id, char, macro_state.options)
+            macro_state.list.push(macro);
+            macro_state.cache[char] = macro;
+
+            return id;
+        }
+
+        function find_free_id(macro_state) {
+
+            var offset = macro_state.list.length;
+
+            for (var i = 0; i < max_macros; i++) {
+
+                var candidate = (offset + i) % max_macros;
+                var valid = true;
+
+                for (var j = 0; j < macro_state.list.length; j++) {
+                    if (macro_state.list[i].id == candidate) {
+                        valid = false;
+                        break;
+                    }
+                }
+
+                if (valid) return candidate;
+            }
+
+            return -1;
+
+        }
+
+        function to_macro(id, char, options) {
+
+            var actions = []
+
+            switch (options.method) {
+
+                case "win":
+                    actions = win_macro(char, options);
+                    break;
+
+                case "wincompose":
+                    actions = wincompose_macro(char, options);
+                    break;
+
+                case "ibus":
+                    actions = ibus_macro(char, options);
+                    break;
+
+                case "macos":
+                    actions = mac_macro(char, options);
+                    break;
+
+                default:
+
+            }
+
+            return {
+                "id": id,
+                "name": char,
+                "actions": actions,
+                "macro": "",
+            };
+
+        }
+
+        function win_macro(char, options) {
+
+            var code = char.charCodeAt(0);
+            var sequence = [];
+
+            // so we could use hex numpad for every character
+            // but support is inconsistent, so we use alt-0nnn if we can.
+
+            if (options.win_prefer_alt0 && char.length == 1) {
+
+                if (code < 255) {
+                    sequence = ["0"].concat(Array.from(code.toString(10)));
+                    return get_actions(["alt"], sequence, true);
+                }
+
+                else if (unicode_to_win1252.hasOwnProperty(code)) {
+                    code = unicode_to_win1252[code];
+                    sequence = ["0"].concat(Array.from(code.toString(10)));
+                    return get_actions(["alt"], sequence, true);
+                }
+
+            }
+
+            // first utf16 code 
+            sequence = ["plus"].concat(Array.from(code.toString(16)));
+            actions = get_actions(["alt"], sequence, true);
+
+            // enter as a surrogate pair with a complete macro sequence for each
+            if (char.length == 2) {
+                code = char.charCodeAt(1);
+                sequence = ["plus"].concat(Array.from(code.toString(16)));
+                actions = get_actions(["alt"], sequence, true, actions);
+            }
+
+            return actions;
+
+        }
+
+        function wincompose_macro(char, options) {
+
+            var code = char.codePointAt(0);
+            var sequence = Array.from(code.toString(16));
+            var sequence = [].concat(["u"], sequence, ["enter"])
+
+            var actions = get_actions(options.compose_mod, options.compose_key, false);
+            actions = get_actions([], sequence, false, actions);
+
+            return actions;
+
+        }
+
+        function ibus_macro(char, options) {
+            var code = char.codePointAt(0);
+
+            var sequence = Array.from(code.toString(16));
+            var actions = [];
+
+            if (options.ibus_hold) {
+
+                actions = get_actions(["ctrl", "shift"], [].concat(["u"], sequence), false);
+
+            } else {
+
+                actions = get_actions(["ctrl", "shift"], ["u"], false);
+                actions = get_actions([], [].concat(sequence, options.ibus_end), false, actions);
+
+            }
+
+            return actions;
+        }
+
+        function mac_macro(char, options) {
+
+            var code = char.charCodeAt(0);
+            var sequence = Array.from(code.toString(16))
+
+            // surrogate pair, but both holding the same key
+            if (char.length == 2) {
+                sequence.push(Array.from(char.charCodeAt(1).toString(16)))
+            }
+
+            return get_actions(["alt"], sequence, false);
+        }
+
+
+        function get_actions(hold, sequence_hold, numpad, prev_actions) {
+
+            // Hold modifier, perform a sequence, release
+
+            var actions = prev_actions ?? [];
+            var id = actions.length;
+
+            if (hold != null && hold.length) {
+                for (i = 0; i < hold.length; i++) {
+                    actions.push({ "keyCode": get_key_code(hold[i], numpad), "type": 6, "id": id++ })
+                }
+            }
+            if (sequence_hold != null && sequence_hold.length) {
+                for (i = 0; i < sequence_hold.length; i++) {
+                    actions.push({ "keyCode": get_key_code(sequence_hold[i], numpad), "type": 8, "id": id++ })
+                }
+            }
+            if (hold != null && hold.length) {
+                for (i = 0; i < hold.length; i++) {
+                    actions.push({ "keyCode": get_key_code(hold[i], numpad), "type": 7, "id": id++ })
+                }
+            }
+
+            return actions;
+
+        }
+
+        function get_key_code(name, numpad) {
+
+            // numpad requested or only exist on numpad
+            if (key_codes.hasOwnProperty("num" + name) && (numpad || !key_codes.hasOwnProperty(name))) {
+                return key_codes["num" + name];
+            }
+
+            else if (key_codes.hasOwnProperty(name)) {
+                return key_codes[name];
+            }
+
+            else {
+
+                var parsed = parseInt(name);
+                if (!isNaN(parsed) && parsed < 255 && parsed > 0) {
+                    return parsed
+                }
+
+                return 0;
+            }
+
+
+        }
+
+
+        function find_shifts(keys) {
+
+            var shift_pos = [];
+            for (var i = 0; i < keys.length; i++) {
+                if (keys[i] && keys[i].keyCode == 226 || keys[i].keyCode == 229)
+                    shift_pos.push(i);
+            }
+
+            if (shift_pos.length == 0)
+                return [48, 63];
+
+            return shift_pos;
+        }
+
+        // Copy With modifier
+        function add_modifier(key, add) {
+
+            var c = key.keyCode
+            if (c == 0 || c >= 8192) return key
+
+            if (add.ctrl) { c |= 256; }
+            if (add.alt) { c |= 512; }
+            if (add.altGr) { c |= 1024; }
+            if (add.shift) { c |= 2048; }
+            if (add.gui) { c |= 4096; }
+
+            var mod = ""
+            if ((c & 256) > 0) { mod += "C+" }
+            if ((c & 512) > 0) { mod += "A+" }
+            if ((c & 1024) > 0) { mod += "AGr+" }
+            if ((c & 2048) > 0) { mod += "S+" }
+            if ((c & 4096) > 0) { mod += "G+" }
+
+            mod = mod.replace("C+A+AGr+S+G+", "H+AGr+")
+            mod = mod.replace("C+A+S+G+", "Hyp+")
+            mod = mod.replace("C+A+AGr+S+", "M+AGr+")
+            mod = mod.replace("C+A+S+", "Meh+")
+
+            return {
+                "keyCode": c,
+                "label": key.label,
+                "extraLabel": mod
+            }
+
+        }
+
+
+        // the person who did led numbering was drunk...
+        // or decided pain in software is less expensive than pain in hardware.
+
+        function remap_led(c) {
+
+            // iso/ansi irregular stuff
+            if (c == 47) return 40
+            if (c == 31) return 48
+
+            //left half
+            if (0 <= c && c <= 6) return mp(c, [0, 6], [0, 6])
+            if (16 <= c && c <= 21) return mp(c, [16, 21], [7, 12])
+            if (32 <= c && c <= 37) return mp(c, [32, 37], [13, 18])
+            if (48 <= c && c <= 54) return mp(c, [48, 54], [19, 25])
+            if (64 <= c && c <= 68) return mp(c, [64, 68], [26, 30])
+            if (70 <= c && c <= 71) return mp(c, [70, 71], [31, 32])
+
+            //right half
+            if (9 <= c && c <= 15) return mp(c, [9, 15], [33, 39])
+            if (24 <= c && c <= 30) return mp(c, [24, 30], [47, 41])
+            if (41 <= c && c <= 46) return mp(c, [41, 46], [54, 49])
+            if (58 <= c && c <= 63) return mp(c, [58, 63], [60, 55])
+            if (74 <= c && c <= 79) return mp(c, [74, 79], [66, 61])
+            if (72 <= c && c <= 73) return mp(c, [72, 73], [68, 67])
+
+        }
+
+        function mp(x, a, b) {
+            return Math.round(((x - a[0]) / (a[1] - a[0])) * (b[1] - b[0]) + b[0])
+        }
+
+
+
+        var key_codes = {
+
+            "a": 0x04, // keyboard a a
+            "b": 0x05, // keyboard b b
+            "c": 0x06, // keyboard c c
+            "d": 0x07, // keyboard d d
+            "e": 0x08, // keyboard e e
+            "f": 0x09, // keyboard f f
+            "u": 0x18, // keyboard u u
+
+            "1": 0x1e, // keyboard 1 !
+            "2": 0x1f, // keyboard 2 @
+            "3": 0x20, // keyboard 3 #
+            "4": 0x21, // keyboard 4 $
+            "5": 0x22, // keyboard 5 %
+            "6": 0x23, // keyboard 6 ^
+            "7": 0x24, // keyboard 7 &
+            "8": 0x25, // keyboard 8 *
+            "9": 0x26, // keyboard 9 (
+            "0": 0x27, // keyboard 0 )
+
+            "enter": 0x28,
+            "space": 0x2c,
+
+            "numplus": 0x57, // keypad +
+
+            "num1": 0x59, // keypad 1 end
+            "num2": 0x5a, // keypad 2 down arrow
+            "num3": 0x5b, // keypad 3 page down
+            "num4": 0x5c, // keypad 4 left arrow
+            "num5": 0x5d, // keypad 5
+            "num6": 0x5e, // keypad 6 right arrow
+            "num7": 0x5f, // keypad 7 home
+            "num8": 0x60, // keypad 8 up arrow
+            "num9": 0x61, // keypad 9 page up
+            "num0": 0x62, // keypad 0 insert
+
+            //"numa": 0xbc, // keypad 1 end
+            //"numb": 0xbd, // keypad 2 down arrow
+            //"numc": 0xbe, // keypad 3 page down
+            //"numd": 0xbf, // keypad 4 left arrow
+            //"nume": 0xc0, // keypad 5
+            //"numf": 0xc1, // keypad 6 right arrow
+
+
+            "f20": 0x6f,  //  Provided for alternative compose key
+            "f21": 0x70,
+            "f22": 0x71,
+            "f23": 0x72,
+            "f24": 0x73,
+
+            "ctrl": 224,
+            "shift": 225,
+            "alt": 226,
+            "gui": 227,
+
+            "rctrl": 228,
+            "rshift": 229,
+            "ralt": 230,
+            "rgui": 231
+
+        }
+
+        var unicode_to_win1252 = { 338: 140, 339: 156, 352: 138, 353: 154, 376: 159, 381: 142, 382: 158, 402: 131, 710: 136, 732: 152, 8211: 150, 8212: 151, 8216: 145, 8217: 146, 8218: 130, 8220: 147, 8221: 148, 8222: 132, 8224: 134, 8225: 135, 8226: 149, 8230: 133, 8240: 137, 8249: 139, 8250: 155, 8364: 128, 8482: 153 }
+
+    </script>
+
+
+
+
+
+
+</body>
+
+</html>
